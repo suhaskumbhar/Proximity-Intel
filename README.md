@@ -35,7 +35,36 @@ This project is built to solve distinct operational and revenue challenges acros
 - **Raw Haversine Spatial Querying:** High-speed server-side calculations sorting coordinates by dynamic proximity thresholds without relying on costly third-party geospatial database extensions.
 - **Dynamic Multi-Industry Config (`config.json`):** Decoupled terminology, color schemes, map symbols, and allowed telemetry ranges into a unified schema for instant re-branding and configuration.
 - **Interactive Leaflet.js Mapping Matrix:** Lightweight, fluid front-end representing technician paths, geofenced boundaries, and live service clusters.
-- **High-Performance Redis Cache Architecture:** Configured for high-throughput with a robust, zero-dependency in-memory mock failover to guarantee immediate standalone local development.
+- **Resilient Redis & In-Memory Hybrid Storage:** Built with dual-mode storage to ensure enterprise-readiness while remaining extremely easy for anyone to clone and run locally.
+
+---
+
+## 💾 Storage Architecture & Redis Integration
+
+**Proximity Intel** is designed for ultra-low latency reads and writes. To achieve this, it implements a **resilient hybrid storage architecture** utilizing **Redis** as its primary live memory-store:
+
+```
+  ┌─────────────────────────────────────────────────────────┐
+  │                      REST API                           │
+  └──────────────────────────┬──────────────────────────────┘
+                             │ (Reads / Writes)
+                             ▼
+              ┌─────────────────────────────┐
+              │    Dynamic Storage Router   │
+              └──────────────┬──────────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              ▼                             ▼
+     [ Live Redis Host ]           [ Self-Healing Memory ]
+     • High-throughput caching     • Active fallback sandbox
+     • Production-grade speeds     • Zero-dependency sandbox
+     • Persistent keyspace         • Auto-seeded on-the-fly
+```
+
+### Key Design Highlights:
+1. **Production Redis Cache:** When a Redis instance is available (detected via `REDIS_URL` or default `localhost:6379`), the engine binds directly to Redis, serving pre-seeded geographic records with sub-millisecond lookups.
+2. **Seamless In-Memory Failover:** If Redis is offline or connection attempts are refused, the server **automatically fails over to an internal in-memory spatial database mock**.
+3. **Automatic Pre-Seeding:** Upon boot (either in Redis or local memory), the engine automatically seeds **100 high-accuracy geographic service alerts** across the Memphis, Cordova, and Germantown (TN) metro areas to provide immediate spatial data.
 
 ---
 
@@ -59,7 +88,18 @@ Modify `src/config.json` to swap out service types, naming conventions, and visu
 }
 ```
 
-### 3. Run Development Server
+### 3. Database & Caching Setup (Optional)
+By default, the application **automatically uses the in-memory fallback engine** if Redis is not installed. 
+
+To run with a live Redis container:
+```bash
+# Spin up Redis via Docker
+docker run -d --name redis-proximity -p 6379:6379 redis:alpine
+```
+The server will auto-detect the live container and output:
+`✅ [Proximity Intel Redis] Linked to live Redis host.`
+
+### 4. Run Development Server
 ```bash
 npm run dev
 ```
