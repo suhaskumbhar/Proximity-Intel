@@ -1,0 +1,39 @@
+{
+  "industry": "Multi-Industry Spatial Intelligence",
+  "appName": "Proximity Intel",
+  "appSubtitle": "Location-Based Dispatch & Sales Enablement Engine v2.5",
+  "alertNameSingular": "Service Alert",
+  "alertNamePlural": "Service Alerts",
+  "categoryLabel": "Service Type (Target Dispatch Category)",
+  "allowedCategories": ["ServiceType 1", "ServiceType 2", "ServiceType 3", "ServiceType 4"],
+  "categories": [
+    {
+      "id": "ServiceType 1",
+      "name": "ServiceType 1",
+      "emoji": "🔧",
+      "color": { "fill": "#ef4444", "border": "#b91c1c" },
+      "desc": "Hardware & Mechanical Maintenance (High Priority)"
+    },
+    {
+      "id": "ServiceType 2",
+      "name": "ServiceType 2",
+      "emoji": "📦",
+      "color": { "fill": "#64748b", "border": "#475569" },
+      "desc": "Logistics, Delivery & Intake Support"
+    },
+    {
+      "id": "ServiceType 3",
+      "name": "ServiceType 3",
+      "emoji": "⚡",
+      "color": { "fill": "#f59e0b", "border": "#d97706" },
+      "desc": "Electrical Grid & Power Allocation"
+    },
+    {
+      "id": "ServiceType 4",
+      "name": "ServiceType 4",
+      "emoji": "💧",
+      "color": { "fill": "#3b82f6", "border": "#1d4ed8" },
+      "desc": "Water, Flow & Utility Inspections"
+    }
+  ]
+}

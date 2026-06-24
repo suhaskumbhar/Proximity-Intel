@@ -1,0 +1,6 @@
+{
+  "name": "Proximity Intel",
+  "description": "A high-performance full-stack location intelligence platform with geofenced batch-checks, real-time spatial clustering, and active multi-industry service configs for mobile field technicians and localized sales representatives.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

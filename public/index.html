@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="title-tag">Service-Alert Core Dashboard</title>
+  
+  <!-- Tailwind CSS via Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Map Styling */
+    #map {
+      height: 520px;
+      border-radius: 12px;
+      z-index: 1;
+    }
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- TOP HEADER & STATUS BAR (Professional Polish: Deep Slate Dark Theme) -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50 px-6 py-4 shadow-md">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white" id="app-title">Service-Alert Core</h1>
+          <p class="text-[10px] text-slate-400 uppercase tracking-widest leading-none mt-1" id="app-subtitle">Low-Latency Spatial Engine v2.4</p>
+        </div>
+      </div>
+      
+      <!-- Database & City Presets -->
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- City Select Presets -->
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Region:</span>
+          <div class="inline-flex rounded-lg shadow-sm bg-slate-800 border border-slate-700 p-0.5">
+            <button onclick="jumpToCity(35.1495, -90.0490, 'Memphis')" class="px-2.5 py-1 text-[11px] font-semibold text-indigo-400 rounded hover:text-white hover:bg-slate-700 transition">Memphis ★</button>
+            <button onclick="jumpToCity(43.6532, -79.3832, 'Toronto')" class="px-2.5 py-1 text-[11px] font-medium text-slate-300 rounded hover:text-white hover:bg-slate-700 transition">Toronto</button>
+            <button onclick="jumpToCity(40.7128, -74.0060, 'New York')" class="px-2.5 py-1 text-[11px] font-medium text-slate-300 rounded hover:text-white hover:bg-slate-700 transition">New York</button>
+            <button onclick="jumpToCity(37.7749, -122.4194, 'San Francisco')" class="px-2.5 py-1 text-[11px] font-medium text-slate-300 rounded hover:text-white hover:bg-slate-700 transition">S.F.</button>
+            <button onclick="jumpToCity(41.8781, -87.6298, 'Chicago')" class="px-2.5 py-1 text-[11px] font-medium text-slate-300 rounded hover:text-white hover:bg-slate-700 transition">Chicago</button>
+          </div>
+        </div>
+
+        <!-- Engine Badge -->
+        <div class="flex items-center gap-2 bg-slate-800/80 border border-slate-700/60 rounded-lg px-3 py-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="engine-status-led"></span>
+          <span class="text-[11px] font-mono font-semibold text-slate-300" id="engine-status-text">Detecting Node Server...</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- DASHBOARD MAIN BODY -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- LEFT PANEL: CONTROLS & FORMS (5 Cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- CARD 1: ALERT INGESTION FORM -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="w-1.5 h-6 bg-indigo-600 rounded-full"></span>
+          <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider" id="ingestion-header-title">Service Alert Ingestion</h2>
+        </div>
+        
+        <form id="ingest-form" class="space-y-4">
+          <!-- Coordinates Grid Row -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Latitude</label>
+              <input type="number" step="any" id="ingest-lat" required placeholder="43.6532" class="w-full text-sm font-mono border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Longitude</label>
+              <input type="number" step="any" id="ingest-lon" required placeholder="-79.3832" class="w-full text-sm font-mono border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+            </div>
+          </div>
+
+          <!-- Quick Tip -->
+          <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline text-indigo-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            Pro-Tip: Click or double-click anywhere on the map to pre-fill coordinates.
+          </p>
+
+          <!-- Calculated Grid Preview -->
+          <div class="bg-slate-50 border border-slate-200/80 rounded-lg p-3 flex justify-between items-center text-xs">
+            <span class="font-medium text-slate-500">Calculated Redis Grid:</span>
+            <span class="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100" id="grid-key-preview">0.00_0.00</span>
+          </div>
+
+          <!-- Pest Type Select -->
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1" id="category-dropdown-label">Service Type (Target Category)</label>
+            <select id="pest-type" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="ServiceType 1">🔧 ServiceType 1 (Hardware/Mechanical)</option>
+              <option value="ServiceType 2">📦 ServiceType 2 (Logistics/Delivery)</option>
+              <option value="ServiceType 3">⚡ ServiceType 3 (Electrical/Energy)</option>
+              <option value="ServiceType 4">💧 ServiceType 4 (Water/Utilities)</option>
+            </select>
+          </div>
+
+          <!-- Severity Selector -->
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Threat Severity Level</label>
+            <div class="grid grid-cols-4 gap-2">
+              <button type="button" onclick="setSeverity(1)" id="sev-btn-1" class="severity-btn py-2 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 hover:bg-emerald-50 text-emerald-700 border-emerald-200">
+                1 (30d)
+              </button>
+              <button type="button" onclick="setSeverity(2)" id="sev-btn-2" class="severity-btn py-2 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 hover:bg-yellow-50 text-yellow-700">
+                2 (30d)
+              </button>
+              <button type="button" onclick="setSeverity(3)" id="sev-btn-3" class="severity-btn py-2 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 hover:bg-orange-50 text-orange-700">
+                3 (14d)
+              </button>
+              <button type="button" onclick="setSeverity(4)" id="sev-btn-4" class="severity-btn py-2 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 hover:bg-red-50 text-red-700">
+                4 (Cust)
+              </button>
+            </div>
+            <input type="hidden" id="severity-level" value="1">
+          </div>
+
+          <!-- Custom Duration (Only visible for Severity 4) -->
+          <div id="custom-duration-container" class="hidden animate-fadeIn">
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Custom Expiration Duration (seconds)</label>
+            <input type="number" id="custom-duration" value="300" placeholder="e.g. 300 for 5 minutes" class="w-full text-sm font-mono border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <p class="text-[10px] text-slate-400 mt-1">Shorter TTL (e.g., 300-600s) is ideal for testing rapid Redis automatic expiration cycles.</p>
+          </div>
+
+          <!-- Source Description -->
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase mb-1">Alert Source / Report Details</label>
+            <input type="text" id="alert-source" placeholder="e.g. Resident call, field inspection team, sensors" class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold text-sm py-2.5 rounded-lg transition-colors shadow-md flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Push to Grid Cluster
+          </button>
+        </form>
+      </div>
+
+      <!-- CARD 2: FIELD TECHNICIAN APPOINTMENTS (BATCH-CHECK) -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-6 bg-slate-900 rounded-full"></span>
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Today's Dispatch List</h2>
+          </div>
+          <button onclick="runBatchCheck()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded-md shadow-sm transition-all flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 6H16" />
+            </svg>
+            Batch-Check
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-500 mb-3">
+          Simulate a field technician's dispatch list. Each appointment coordinate will query surrounding alerts and display precise proximity geofencing.
+        </p>
+
+        <!-- Geofence Radius Limit Control -->
+        <div class="mb-4 bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+          <div class="flex items-center justify-between mb-1">
+            <label for="geofence-radius" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dispatch Geofence Limit</label>
+            <span id="geofence-radius-val" class="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">1.0 km (1000m)</span>
+          </div>
+          <input type="range" id="geofence-radius" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateGeofenceRadiusVal(this.value)" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+          <div class="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-200/50">
+            <p class="text-[10px] text-slate-400 leading-normal">
+              Exact Geodetic Distance Geofence
+            </p>
+            <label class="flex items-center gap-1 text-[10px] text-slate-500 font-semibold cursor-pointer select-none">
+              <input type="checkbox" id="show-grid-cells" onchange="runBatchCheck()" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-3 h-3">
+              <span>Show Grid Bounds</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Map Marker Scope Toggle -->
+        <div class="mb-4 bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Map Markers Scope</span>
+            <span id="filter-mode-status" class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100">Dispatch Only</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1 bg-slate-200/75 rounded-md p-0.5 border border-slate-200/50">
+            <button id="btn-mode-dispatch" onclick="toggleMapFilterMode('dispatch')" class="text-[10px] font-bold py-1 px-1.5 rounded transition-all bg-white text-slate-900 shadow-xs">
+              📋 Dispatch Only
+            </button>
+            <button id="btn-mode-all" onclick="toggleMapFilterMode('all')" class="text-[10px] font-semibold py-1 px-1.5 rounded transition-all text-slate-500 hover:text-slate-800">
+              🌐 All Database Alerts
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1.5 leading-normal" id="marker-scope-description">
+            Switch to show only geofenced service alerts matching current technicians or all Memphis metro area alerts.
+          </p>
+        </div>
+
+        <!-- Dynamic Appointments List -->
+        <div id="appointments-list" class="space-y-2.5 max-h-[220px] overflow-y-auto mb-4 pr-1">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Add Custom Appointment Sub-Form -->
+        <div class="border-t border-slate-100 pt-3 mt-3">
+          <h3 class="text-xs font-bold text-slate-500 uppercase mb-2">Append Custom Appointment</h3>
+          <div class="grid grid-cols-12 gap-2">
+            <input type="text" id="new-appt-name" placeholder="Client Name" class="col-span-4 text-xs border border-slate-300 rounded px-2 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <input type="number" step="any" id="new-appt-lat" placeholder="Lat" class="col-span-3 text-xs border border-slate-300 rounded px-2 py-1.5 bg-slate-50 font-mono focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <input type="number" step="any" id="new-appt-lon" placeholder="Lon" class="col-span-3 text-xs border border-slate-300 rounded px-2 py-1.5 bg-slate-50 font-mono focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <button onclick="addCustomAppointment()" class="col-span-2 bg-slate-950 hover:bg-indigo-600 text-white text-xs font-bold rounded flex items-center justify-center transition-colors">
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: INTERACTIVE MAP & SPATIAL RESOLUTION (7 Cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-6">
+      
+      <!-- CARD 3: LEAFLET MAP -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-6 bg-indigo-600 rounded-full"></span>
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Live Spatial Distribution Map</h2>
+          </div>
+          <span class="text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold px-2.5 py-1 rounded">
+            Double-click Map to Position Ingestion Point
+          </span>
+        </div>
+
+        <!-- The Leaflet map -->
+        <div id="map" class="shadow-inner border border-slate-100"></div>
+
+        <!-- MAP LEGEND -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 text-xs">
+          <div>
+            <span class="font-bold text-slate-700 block mb-1.5">Threat Severity Levels (Auto-Expire)</span>
+            <div class="flex flex-wrap gap-1.5">
+              <span class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Level 1 & 2 (30d)
+              </span>
+              <span class="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-800 px-2 py-0.5 rounded font-medium">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span> Level 3 (14d)
+              </span>
+              <span class="inline-flex items-center gap-1 bg-rose-50 border border-rose-200 text-rose-800 px-2 py-0.5 rounded font-medium">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span> Level 4 (Custom)
+              </span>
+            </div>
+          </div>
+          <div>
+            <span class="font-bold text-slate-700 block mb-1.5" id="category-legend-title">Service Categories Representation</span>
+            <div class="grid grid-cols-2 gap-y-1 text-slate-600 font-mono text-[10px]" id="category-legend-box">
+              <div>🔧 ServiceType 1 (Red)</div>
+              <div>📦 ServiceType 2 (Gray)</div>
+              <div>⚡ ServiceType 3 (Gold)</div>
+              <div>💧 ServiceType 4 (Blue)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 4: REAL-TIME SPATIAL GRID DEBUGGER & API STREAM LOGS -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex-grow flex flex-col min-h-[220px]">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-6 bg-indigo-600 rounded-full"></span>
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Spatial Cluster & API Debug Console</h2>
+          </div>
+          <button onclick="clearLogs()" class="text-[11px] font-bold text-slate-400 hover:text-indigo-600 transition-colors">
+            Clear Stream
+          </button>
+        </div>
+
+        <!-- 3x3 Grid Key Visualization Grid -->
+        <div class="mb-4">
+          <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">3x3 Surrounding Cluster Keys (Boundary Shield)</h3>
+          <p class="text-[11px] text-slate-500 mb-3">
+            To solve the "Boundary Problem", checking an address pulls the 3x3 surrounding grid cells. Below is the active cluster mapped from your current map selection:
+          </p>
+          <div class="grid grid-cols-3 gap-2 max-w-sm mx-auto text-center" id="cluster-key-grid">
+            <div class="bg-slate-50 rounded p-2 font-mono text-[11px] text-slate-400 border border-slate-200/50">N/A</div>
+            <div class="bg-slate-50 rounded p-2 font-mono text-[11px] text-slate-400 border border-slate-200/50">N/A</div>
+            <div class="bg-slate-50 rounded p-2 font-mono text-[11px] text-slate-400 border border-slate-200/50">N/A</div>
+            <div class="bg-slate-50 rounded p-2 font-mono text-[11px] text-slate-400 border border-slate-200/50">N/A</div>
+            <div class="bg-indigo-50 rounded p-2 font-mono text-[11px] font-bold text-indigo-700 border border-indigo-200 shadow-sm animate-pulse" id="active-center-key">Center N/A</div>
+            <div class="bg-slate-50 rounded p-2 font-mono text-[11px] text-slate-400 border border-slate-200/50">N/A</div>
+            <div class="bg-slate-50 rounded p-2 font-mono text-[11px] text-slate-400 border border-slate-200/50">N/A</div>
+            <div class="bg-slate-50 rounded p-2 font-mono text-[11px] text-slate-400 border border-slate-200/50">N/A</div>
+            <div class="bg-slate-50 rounded p-2 font-mono text-[11px] text-slate-400 border border-slate-200/50">N/A</div>
+          </div>
+        </div>
+
+        <!-- Terminal Logs -->
+        <div class="flex-grow flex flex-col bg-slate-900 rounded-lg p-3.5 border border-slate-800">
+          <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono mb-2.5 border-b border-slate-850 pb-1.5">
+            <span>REAL-TIME STREAMING TERMINAL</span>
+            <span id="log-counter">0 events</span>
+          </div>
+          <div id="logs-box" class="font-mono text-xs text-indigo-300 space-y-1.5 max-h-[140px] overflow-y-auto pr-1 flex-grow scroll-smooth">
+            <div class="text-slate-500">[System Initialization] Connected to Web Client. Double-click on Leaflet Map to start injecting.</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="h-10 bg-slate-100 border-t border-slate-200 px-6 flex items-center justify-between text-[11px] font-mono text-slate-500">
+    <div class="flex gap-6">
+      <span id="footer-engine-text">Service Alert Engine • High-Performance Vanilla Node.js Core</span>
+      <span class="hidden md:inline text-slate-400">|</span>
+      <span class="hidden md:inline">API URL: POST /v1/alerts</span>
+    </div>
+    <div class="flex gap-4">
+      <span class="text-indigo-600 font-bold tracking-tight">CORE_ENGINE_HEALTH: 100%</span>
+      <span>MEM: OK</span>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- CUSTOM APPLICATION SCRIPT -->
+  <script>
+    // Server Host configuration - dynamically maps to current window location
+    const API_BASE = window.location.origin;
+
+    // Default Tech Dispatch list
+    let appointments = [
+      { id: "appt-mem-1", label: "Downtown Memphis (Court Square)", lat: 35.1450, lon: -90.0520 },
+      { id: "appt-mem-2", label: "Midtown (Overton Park Shell)", lat: 35.1490, lon: -90.0120 },
+      { id: "appt-mem-3", label: "South Memphis (Stax Museum)", lat: 35.1150, lon: -90.0310 },
+      { id: "appt-mem-4", label: "Cooper-Young Historic District", lat: 35.1228, lon: -90.0045 }
+    ];
+
+    // Global Map Variables
+    let map;
+    let markersLayer;
+    let gridBoundsLayer;
+    let mapMarkerList = [];
+    let mapFilterMode = 'dispatch'; // 'dispatch' or 'all'
+    
+    // Default Map Center (Memphis coordinates)
+    let currentCenter = [35.1495, -90.0490];
+    let selectedIngestLat = 35.1495;
+    let selectedIngestLon = -90.0490;
+
+    // Global configuration cache
+    let configData = null;
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', async () => {
+      // 1. Setup default values in the form
+      document.getElementById('ingest-lat').value = selectedIngestLat.toFixed(5);
+      document.getElementById('ingest-lon').value = selectedIngestLon.toFixed(5);
+      updateGridKeyPreview(selectedIngestLat, selectedIngestLon);
+
+      // 2. Initialize Leaflet Map
+      initMap();
+
+      // 3. Load dynamic industry configuration
+      await fetchAndApplyConfig();
+
+      // 4. Render initial appointments UI
+      renderAppointments();
+
+      // 5. Run default check to see if database is alive & fetch any preexisting alerts
+      runBatchCheck();
+    });
+
+    // Fetches dynamic industry-specific parameters and updates UI
+    async function fetchAndApplyConfig() {
+      try {
+        const response = await fetch(`${API_BASE}/v1/config`);
+        configData = await response.json();
+        if (configData) {
+          // Update page title & headings
+          document.title = `${configData.appName} Dashboard`;
+          const titleTag = document.getElementById('title-tag');
+          if (titleTag) titleTag.innerText = `${configData.appName} Dashboard`;
+          document.getElementById('app-title').innerText = configData.appName;
+          document.getElementById('app-subtitle').innerText = configData.appSubtitle;
+          document.getElementById('ingestion-header-title').innerText = `${configData.alertNameSingular} Ingestion (v1/alerts)`;
+          document.getElementById('category-dropdown-label').innerText = configData.categoryLabel;
+          document.getElementById('marker-scope-description').innerText = `Switch to show only geofenced ${configData.alertNameSingular.toLowerCase()}s matching current technicians or all Memphis metro area alerts.`;
+          document.getElementById('footer-engine-text').innerText = `${configData.alertNameSingular} Engine • High-Performance Vanilla Node.js Core`;
+          
+          const labelModeDispatch = document.getElementById('btn-mode-dispatch');
+          const labelModeAll = document.getElementById('btn-mode-all');
+          if (labelModeDispatch) labelModeDispatch.innerText = `📋 Dispatch Only`;
+          if (labelModeAll) labelModeAll.innerText = `🌐 All Database ${configData.alertNamePlural}`;
+          
+          // Populate Option Select Dropdown dynamically
+          const selectElement = document.getElementById('pest-type');
+          selectElement.innerHTML = '';
+          configData.categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.innerText = `${cat.emoji} ${cat.name} (${cat.desc || 'General category'})`;
+            selectElement.appendChild(option);
+          });
+
+          // Populate Map Legend box dynamically
+          const legendBox = document.getElementById('category-legend-box');
+          legendBox.innerHTML = '';
+          configData.categories.forEach(cat => {
+            const item = document.createElement('div');
+            item.innerText = `${cat.emoji} ${cat.name}`;
+            legendBox.appendChild(item);
+          });
+
+          logTerminal(`[Config Loader] Applied dynamic industry theme: ${configData.appName}`);
+        }
+      } catch (err) {
+        logTerminal(`[Config Error] Failed loading industry configuration: ${err.message}`);
+      }
+    }
+
+    // Setup Leaflet
+    function initMap() {
+      map = L.map('map', {
+        doubleClickZoom: false // disable to allow custom double click
+      }).setView(currentCenter, 13);
+
+      // Add Standard OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+      gridBoundsLayer = L.layerGroup().addTo(map);
+
+      // Click event to fill coordinates easily
+      map.on('click', (e) => {
+        setFormCoordinates(e.latlng.lat, e.latlng.lng);
+        logTerminal(`[Map interaction] Prefilled coordinate values to: (${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)})`);
+      });
+
+      // Double click to create an ingestion directly
+      map.on('dblclick', (e) => {
+        setFormCoordinates(e.latlng.lat, e.latlng.lng);
+        logTerminal(`[Map interaction] Focus set. Ready to ingest alert at (${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)})`);
+        // Smoothly scroll to ingestion form on mobile
+        document.getElementById('ingest-form').scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+
+    // Prefill form values
+    function setFormCoordinates(lat, lon) {
+      selectedIngestLat = lat;
+      selectedIngestLon = lon;
+      document.getElementById('ingest-lat').value = lat.toFixed(5);
+      document.getElementById('ingest-lon').value = lon.toFixed(5);
+      updateGridKeyPreview(lat, lon);
+    }
+
+    // Spatial conversion helper on frontend
+    function getGridKey(lat, lon) {
+      const gridLat = (Math.round(lat * 50) / 50).toFixed(2);
+      const gridLon = (Math.round(lon * 50) / 50).toFixed(2);
+      return `${gridLat}_${gridLon}`;
+    }
+
+    // Calculates and displays the 3x3 cluster on the debug panel
+    function updateGridKeyPreview(lat, lon) {
+      const centerKey = getGridKey(lat, lon);
+      document.getElementById('grid-key-preview').innerText = centerKey;
+      document.getElementById('active-center-key').innerText = `Center: ${centerKey}`;
+
+      // Compute surrounding grid keys and render the grid
+      const gridElements = document.getElementById('cluster-key-grid').children;
+      const step = 0.02;
+      let index = 0;
+
+      for (let dLat = -1; dLat <= 1; dLat++) {
+        for (let dLon = -1; dLon <= 1; dLon++) {
+          const neighborLat = lat + dLat * step;
+          const neighborLon = lon + dLon * step;
+          const key = getGridKey(neighborLat, neighborLon);
+          
+          if (index !== 4) { // skip center
+            gridElements[index].innerText = key;
+          }
+          index++;
+        }
+      }
+    }
+
+    // Event listener for live coordinate edits
+    document.getElementById('ingest-lat').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val)) {
+        selectedIngestLat = val;
+        updateGridKeyPreview(selectedIngestLat, selectedIngestLon);
+      }
+    });
+
+    // Event listener for live coordinate edits
+    document.getElementById('ingest-lon').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val)) {
+        selectedIngestLon = val;
+        updateGridKeyPreview(selectedIngestLat, selectedIngestLon);
+      }
+    });
+
+    // In-app Preset Jumper
+    function jumpToCity(lat, lon, cityName) {
+      currentCenter = [lat, lon];
+      map.panTo(currentCenter);
+      setFormCoordinates(lat, lon);
+      
+      // Update preset technician coordinates to match the selected region
+      if (cityName === 'Memphis') {
+        appointments = [
+          { id: "appt-mem-1", label: "Downtown Memphis (Court Square)", lat: 35.1450, lon: -90.0520 },
+          { id: "appt-mem-2", label: "Midtown (Overton Park Shell)", lat: 35.1490, lon: -90.0120 },
+          { id: "appt-mem-3", label: "South Memphis (Stax Museum)", lat: 35.1150, lon: -90.0310 },
+          { id: "appt-mem-4", label: "Cooper-Young Historic District", lat: 35.1228, lon: -90.0045 }
+        ];
+      } else if (cityName === 'Toronto') {
+        appointments = [
+          { id: "appt-101", label: "T. J. Miller Residence", lat: 43.6545, lon: -79.3812 },
+          { id: "appt-102", label: "Scarborough Commercial Park", lat: 43.6690, lon: -79.3620 },
+          { id: "appt-103", label: "Spadina Bakery & Deli", lat: 43.6420, lon: -79.3980 },
+          { id: "appt-104", label: "Danforth Health Clinic", lat: 43.6792, lon: -79.3450 }
+        ];
+      } else if (cityName === 'New York') {
+        appointments = [
+          { id: "appt-201", label: "Manhattan Plaza", lat: 40.7145, lon: -74.0065 },
+          { id: "appt-202", label: "Central Park West Cafe", lat: 40.7300, lon: -73.9910 },
+          { id: "appt-203", label: "Brooklyn High School", lat: 40.6920, lon: -74.0200 },
+          { id: "appt-204", label: "Queens Boulevard Gym", lat: 40.7250, lon: -73.9750 }
+        ];
+      } else if (cityName === 'San Francisco') {
+        appointments = [
+          { id: "appt-301", label: "Salesforce Transit Center", lat: 37.7760, lon: -122.4180 },
+          { id: "appt-302", label: "Chinatown Gateway", lat: 37.7890, lon: -122.4080 },
+          { id: "appt-303", label: "Mission District Theater", lat: 37.7610, lon: -122.4350 },
+          { id: "appt-304", label: "Fisherman's Wharf Hub", lat: 37.8050, lon: -122.4220 }
+        ];
+      } else if (cityName === 'Chicago') {
+        appointments = [
+          { id: "appt-401", label: "The Bean (Millennium)", lat: 41.8825, lon: -87.6225 },
+          { id: "appt-402", label: "Navy Pier Terminal", lat: 41.8915, lon: -87.6080 },
+          { id: "appt-403", label: "Wicker Park Lounge", lat: 41.9050, lon: -87.6760 },
+          { id: "appt-404", label: "South Loop Supermarket", lat: 41.8650, lon: -87.6320 }
+        ];
+      }
+      
+      renderAppointments();
+      runBatchCheck();
+      logTerminal(`[Navigation Jumper] Shifted operations to ${cityName} center.`);
+    }
+
+    // Ingest Handler
+    document.getElementById('ingest-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const lat = parseFloat(document.getElementById('ingest-lat').value);
+      const lon = parseFloat(document.getElementById('ingest-lon').value);
+      const pestType = document.getElementById('pest-type').value;
+      const severity = parseInt(document.getElementById('severity-level').value);
+      const source = document.getElementById('alert-source').value;
+      const customDuration = parseInt(document.getElementById('custom-duration').value);
+
+      const payload = {
+        lat,
+        lon,
+        pestType,
+        severity,
+        source: source || undefined,
+        customDuration: severity === 4 ? customDuration : undefined
+      };
+
+      logTerminal(`[API Request] POST /v1/alerts ingesting ${pestType} severity ${severity}...`);
+
+      try {
+        const response = await fetch(`${API_BASE}/v1/alerts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.status === 211) {
+          logTerminal(`[API Response] STATUS 211 (Created) | Key: ${data.storageKey} | TTL: ${data.ttl}s`);
+          updateEngineStatus(data.engine);
+          // Highlight success with visual animation or badge update
+          document.getElementById('alert-source').value = ''; // clear description
+          
+          // Trigger batch check automatically to update markers immediately
+          runBatchCheck();
+        } else {
+          logTerminal(`[API Error] STATUS ${response.status} | ${data.error || 'Ingestion failed'}`);
+        }
+      } catch (err) {
+        logTerminal(`[API Fatal] Network error during ingestion: ${err.message}`);
+      }
+    });
+
+    // Live slider update helper
+    function updateGeofenceRadiusVal(val) {
+      const meters = Math.round(parseFloat(val) * 1000);
+      document.getElementById('geofence-radius-val').innerText = `${parseFloat(val).toFixed(1)} km (${meters}m)`;
+      runBatchCheck();
+    }
+
+    // Toggles the map filter mode between 'dispatch' and 'all'
+    function toggleMapFilterMode(mode) {
+      if (mode === mapFilterMode) return;
+      mapFilterMode = mode;
+
+      const btnDispatch = document.getElementById('btn-mode-dispatch');
+      const btnAll = document.getElementById('btn-mode-all');
+      const statusText = document.getElementById('filter-mode-status');
+
+      if (mode === 'dispatch') {
+        btnDispatch.className = "text-[10px] font-bold py-1 px-1.5 rounded transition-all bg-white text-slate-900 shadow-xs";
+        btnAll.className = "text-[10px] font-semibold py-1 px-1.5 rounded transition-all text-slate-500 hover:text-slate-800";
+        statusText.innerText = "Dispatch Only";
+        statusText.className = "text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100";
+        logTerminal("[Map Filter Scope] Switched to show only geofenced dispatch threats.");
+      } else {
+        btnDispatch.className = "text-[10px] font-semibold py-1 px-1.5 rounded transition-all text-slate-500 hover:text-slate-800";
+        btnAll.className = "text-[10px] font-bold py-1 px-1.5 rounded transition-all bg-white text-slate-900 shadow-xs";
+        statusText.innerText = "All Metro Alerts";
+        statusText.className = "text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200";
+        logTerminal("[Map Filter Scope] Switched to show all Memphis metro database alerts.");
+      }
+
+      runBatchCheck();
+    }
+
+    // Run Batch Check (Retrieves alerts for all listed appointments with Haversine geofence)
+    async function runBatchCheck() {
+      if (appointments.length === 0) {
+        logTerminal(`[Batch Check] Aborted: No dispatch appointments listed.`);
+        return;
+      }
+
+      const maxDistanceKm = parseFloat(document.getElementById('geofence-radius').value);
+      logTerminal(`[API Request] POST /v1/alerts/batch-check for ${appointments.length} coordinates (Geofence: ${maxDistanceKm}km)...`);
+
+      try {
+        const payload = {
+          appointments,
+          maxDistanceKm
+        };
+
+        const response = await fetch(`${API_BASE}/v1/alerts/batch-check`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          logTerminal(`[API Response] STATUS 200 | Aggregation complete. Engine: ${data.engine} | Geofence: ${data.globalMaxDistanceKm}km`);
+          updateEngineStatus(data.engine);
+          
+          // Plot markers on map
+          plotAlertsOnMap(data.appointments);
+          
+          // Update dynamic appointment HTML cards with their surrounding count
+          updateAppointmentsStatusHTML(data.appointments);
+        } else {
+          logTerminal(`[API Error] STATUS ${response.status} | ${data.error || 'Query failed'}`);
+        }
+      } catch (err) {
+        logTerminal(`[API Fatal] Batch-check connection error: ${err.message}`);
+      }
+    }
+
+    // Plots interactive Leaflet markers and 3x3 grids visually
+    async function plotAlertsOnMap(apptsData) {
+      markersLayer.clearLayers();
+      gridBoundsLayer.clearLayers();
+
+      const uniqueAlertsMap = new Map();
+      const uniqueGridKeysRendered = new Set();
+
+      // Gather distinct alerts and distinct grids
+      const showGrids = document.getElementById('show-grid-cells')?.checked || false;
+      apptsData.forEach(appt => {
+        // Draw the center grid and surrounding 3x3 grids if toggled on
+        if (showGrids) {
+          appt.cluster.forEach(gridKey => {
+            if (!uniqueGridKeysRendered.has(gridKey)) {
+              uniqueGridKeysRendered.add(gridKey);
+              drawGridBoundaryRectangle(gridKey);
+            }
+          });
+        }
+
+        // Add technician marker
+        L.marker([appt.lat, appt.lon], {
+          icon: L.divIcon({
+            html: `<div class="bg-slate-900 border-2 border-white rounded-full w-7 h-7 flex items-center justify-center text-white text-[10px] font-bold font-mono shadow-md">🛠️</div>`,
+            className: '',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          })
+        }).addTo(markersLayer)
+          .bindPopup(`<strong class="text-xs text-slate-800 font-sans">Dispatch: ${appt.id}</strong><p class="text-xs text-slate-500 font-mono mt-1">Grid: ${appt.gridKey}</p>`);
+      });
+
+      if (mapFilterMode === 'all') {
+        try {
+          const response = await fetch(`${API_BASE}/v1/alerts`);
+          const data = await response.json();
+          if (data && data.success && Array.isArray(data.alerts)) {
+            data.alerts.forEach(alert => {
+              // Check if this alert belongs to any of the geofenced alerts returned from batch-check
+              let matchedAlert = null;
+              for (const appt of apptsData) {
+                const found = appt.alerts.find(a => a.id === alert.id);
+                if (found) {
+                  if (!matchedAlert || found.distanceM < matchedAlert.distanceM) {
+                    matchedAlert = found;
+                  }
+                }
+              }
+              if (matchedAlert) {
+                uniqueAlertsMap.set(alert.id, matchedAlert);
+              } else {
+                uniqueAlertsMap.set(alert.id, alert);
+              }
+            });
+          }
+        } catch (err) {
+          logTerminal(`[API Error] Failed to retrieve all alerts for map: ${err.message}`);
+        }
+      } else {
+        apptsData.forEach(appt => {
+          appt.alerts.forEach(alert => {
+            const existing = uniqueAlertsMap.get(alert.id);
+            if (!existing || alert.distanceM < existing.distanceM) {
+              uniqueAlertsMap.set(alert.id, alert);
+            }
+          });
+        });
+      }
+
+      // Now draw all the unique alerts found inside any of the grid cells
+      uniqueAlertsMap.forEach((alert) => {
+        const pColors = getPestColor(alert.pestType);
+        
+        // Draw the alert dot
+        const circle = L.circleMarker([alert.lat, alert.lon], {
+          radius: 10,
+          fillColor: pColors.fill,
+          color: pColors.border,
+          weight: 2,
+          opacity: 1.0,
+          fillOpacity: 0.85
+        }).addTo(markersLayer);
+
+        // Geodetic proximity label
+        const distLabel = (alert.distanceM !== undefined)
+          ? `<p class="text-xs font-semibold text-indigo-700 bg-indigo-50/60 border border-indigo-100 rounded px-1.5 py-0.5 mt-1 font-mono">Proximity: ${alert.distanceM < 1000 ? alert.distanceM + 'm' : alert.distanceKm + 'km'}</p>`
+          : ``;
+
+        // Interactive Popup content
+        const popupContent = `
+          <div class="p-1 max-w-[190px] font-sans">
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="text-base">${getPestEmoji(alert.pestType)}</span>
+              <strong class="text-sm text-slate-800">${alert.pestType}</strong>
+            </div>
+            <div class="space-y-1 text-xs">
+              <p class="text-slate-500">Grid: <span class="font-mono font-bold text-slate-700 bg-slate-100 px-1 rounded">${alert.gridKey}</span></p>
+              ${distLabel}
+              <div class="flex items-center gap-1">
+                <span class="text-slate-500">Severity:</span>
+                <span class="px-1.5 py-0.2 text-[10px] rounded font-bold ${getSeverityClasses(alert.severity)}">Level ${alert.severity}</span>
+              </div>
+              <p class="text-[11px] text-slate-600 italic">"${alert.source}"</p>
+              <div class="border-t border-slate-100 pt-1 mt-1 text-[10px] text-slate-400 font-mono">
+                Created: ${new Date(alert.createdAt).toLocaleTimeString()}<br/>
+                Expires: ${new Date(alert.expiresAt).toLocaleTimeString()}
+              </div>
+            </div>
+          </div>
+        `;
+        
+        circle.bindPopup(popupContent);
+      });
+    }
+
+    // Draws spatial boundaries on map as transparent cells
+    function drawGridBoundaryRectangle(gridKey) {
+      const parts = gridKey.split("_");
+      const gridLat = parseFloat(parts[0]);
+      const gridLon = parseFloat(parts[1]);
+
+      // Spatial calculation of cell boundaries: +/- 0.01 from center
+      const latMin = gridLat - 0.01;
+      const latMax = gridLat + 0.01;
+      const lonMin = gridLon - 0.01;
+      const lonMax = gridLon + 0.01;
+
+      const bounds = [[latMin, lonMin], [latMax, lonMax]];
+
+      L.rectangle(bounds, {
+        color: '#6366f1', // Indigo grid bounds for "Professional Polish" look
+        weight: 1,
+        fillColor: '#6366f1',
+        fillOpacity: 0.03,
+        dashArray: '3, 3'
+      }).addTo(gridBoundsLayer)
+        .bindTooltip(`Spatial Cell: ${gridKey}`, {
+          sticky: true,
+          className: 'text-[10px] font-mono px-1 py-0 border-slate-200'
+        });
+    }
+
+    // Render local dispatch list UI
+    function renderAppointments() {
+      const listContainer = document.getElementById('appointments-list');
+      listContainer.innerHTML = '';
+
+      appointments.forEach((appt, idx) => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-50 border border-slate-200 hover:border-indigo-200 rounded-lg p-2.5 flex flex-col gap-2 text-xs shadow-sm transition-all";
+        card.id = `appt-card-${appt.id}`;
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-grow min-w-0">
+              <div class="flex items-center justify-between mb-0.5">
+                <strong class="text-slate-800 truncate block font-sans">${appt.label}</strong>
+                <span class="font-mono text-[9px] bg-slate-200 text-slate-600 px-1.5 py-0.2 rounded">${appt.id}</span>
+              </div>
+              <div class="font-mono text-[10px] text-slate-400 truncate">
+                (${appt.lat.toFixed(4)}, ${appt.lon.toFixed(4)}) • Grid: ${getGridKey(appt.lat, appt.lon)}
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <div id="badge-count-${appt.id}" class="h-6 min-w-6 rounded-full bg-slate-200 text-slate-500 font-bold text-[10px] flex items-center justify-center px-1">
+                -
+              </div>
+              <button onclick="panToCoordinate(${appt.lat}, ${appt.lon})" class="text-slate-400 hover:text-indigo-600 p-1 rounded-md hover:bg-slate-200 transition-colors" title="Pan map">
+                🎯
+              </button>
+              <button onclick="removeAppointment('${appt.id}')" class="text-slate-400 hover:text-red-600 p-1 rounded-md hover:bg-red-50 transition-colors" title="Delete appointment">
+                🗑️
+              </button>
+            </div>
+          </div>
+          <!-- Real-time geofenced threats detail list -->
+          <div id="threats-list-${appt.id}" class="space-y-1 hidden border-t border-slate-100 pt-2 mt-1"></div>
+        `;
+        listContainer.appendChild(card);
+      });
+    }
+
+    // Updates surrounding active alert badges for dispatch list and handles geofenced list rendering
+    function updateAppointmentsStatusHTML(resolvedAppts) {
+      resolvedAppts.forEach(res => {
+        const badge = document.getElementById(`badge-count-${res.id}`);
+        const threatContainer = document.getElementById(`threats-list-${res.id}`);
+
+        if (badge) {
+          const count = res.alerts.length;
+          badge.innerText = count;
+          if (count > 0) {
+            badge.className = "h-6 min-w-6 rounded-full bg-red-100 text-red-700 font-bold text-[10px] flex items-center justify-center px-1 border border-red-200 animate-pulse";
+          } else {
+            badge.className = "h-6 min-w-6 rounded-full bg-slate-100 text-slate-400 font-bold text-[10px] flex items-center justify-center px-1 border border-slate-200";
+          }
+        }
+
+          if (threatContainer) {
+          if (res.alerts && res.alerts.length > 0) {
+            threatContainer.classList.remove('hidden');
+            const labelText = configData ? configData.alertNamePlural : 'Alerts';
+            threatContainer.innerHTML = `
+              <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">${labelText} in Geofence:</div>
+              <div class="space-y-1">
+                ${res.alerts.map(alert => {
+                  const distText = alert.distanceM < 1000 ? `${alert.distanceM}m` : `${alert.distanceKm}km`;
+                  return `
+                    <div class="flex items-center justify-between bg-white border border-slate-100 rounded px-2 py-1 shadow-sm font-mono text-[10px]">
+                      <span class="text-slate-700 flex items-center gap-1">
+                        <span>${getPestEmoji(alert.pestType)}</span>
+                        <span class="font-sans font-medium text-slate-800">${alert.pestType}</span>
+                      </span>
+                      <span class="font-bold text-indigo-600">${distText}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `;
+          } else {
+            threatContainer.classList.add('hidden');
+            threatContainer.innerHTML = '';
+          }
+        }
+      });
+    }
+
+    // Add customer custom appointments to sandbox
+    function addCustomAppointment() {
+      const label = document.getElementById('new-appt-name').value || "Manual Dispatched Site";
+      const latInput = parseFloat(document.getElementById('new-appt-lat').value);
+      const lonInput = parseFloat(document.getElementById('new-appt-lon').value);
+
+      if (isNaN(latInput) || isNaN(lonInput)) {
+        logTerminal(`[Config Error] Custom Appointment Lat/Lon must be numeric.`);
+        return;
+      }
+
+      const id = "appt-" + Math.random().toString(36).substring(2, 6);
+      appointments.push({ id, label, lat: latInput, lon: lonInput });
+      
+      renderAppointments();
+      runBatchCheck();
+
+      // Reset fields
+      document.getElementById('new-appt-name').value = '';
+      document.getElementById('new-appt-lat').value = '';
+      document.getElementById('new-appt-lon').value = '';
+
+      logTerminal(`[Sandbox State] Appended dispatch site: ${label} (${latInput}, ${lonInput})`);
+    }
+
+    // Remove appointments on the fly
+    function removeAppointment(id) {
+      appointments = appointments.filter(a => a.id !== id);
+      renderAppointments();
+      runBatchCheck();
+      logTerminal(`[Sandbox State] Dispatched technician site ${id} removed.`);
+    }
+
+    function panToCoordinate(lat, lon) {
+      map.setView([lat, lon], 14);
+      setFormCoordinates(lat, lon);
+    }
+
+    // UI Interactive Severity buttons handler
+    function setSeverity(level) {
+      document.getElementById('severity-level').value = level;
+      
+      // Reset button styles
+      document.querySelectorAll('.severity-btn').forEach(btn => {
+        btn.className = "severity-btn py-2 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition-all";
+      });
+
+      // Highlight active button
+      const activeBtn = document.getElementById(`sev-btn-${level}`);
+      if (level === 1) {
+        activeBtn.className = "severity-btn py-2 text-xs font-bold rounded-lg border-2 border-emerald-500 bg-emerald-50 text-emerald-800 shadow-sm";
+        document.getElementById('custom-duration-container').className = "hidden";
+      } else if (level === 2) {
+        activeBtn.className = "severity-btn py-2 text-xs font-bold rounded-lg border-2 border-yellow-500 bg-yellow-50 text-yellow-800 shadow-sm";
+        document.getElementById('custom-duration-container').className = "hidden";
+      } else if (level === 3) {
+        activeBtn.className = "severity-btn py-2 text-xs font-bold rounded-lg border-2 border-orange-500 bg-orange-50 text-orange-800 shadow-sm";
+        document.getElementById('custom-duration-container').className = "hidden";
+      } else if (level === 4) {
+        activeBtn.className = "severity-btn py-2 text-xs font-bold rounded-lg border-2 border-indigo-600 bg-indigo-50 text-indigo-800 shadow-sm";
+        document.getElementById('custom-duration-container').className = "block animate-fadeIn";
+      }
+    }
+
+    // Engine Badge update
+    function updateEngineStatus(engine) {
+      const led = document.getElementById('engine-status-led');
+      const text = document.getElementById('engine-status-text');
+
+      if (engine === "RedisLive") {
+        led.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        text.innerText = "Redis Live Engine";
+      } else {
+        led.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+        text.innerText = "Sandbox In-Memory";
+      }
+    }
+
+    // Helper functions for map styles
+    function getPestEmoji(pestType) {
+      if (configData && configData.categories) {
+        const found = configData.categories.find(c => c.id === pestType || c.name === pestType);
+        if (found) return found.emoji;
+      }
+      // Fallback emojis in case config is not loaded yet
+      switch (pestType) {
+        case 'ServiceType 1': case 'Mosquito': return '🔧';
+        case 'ServiceType 2': case 'Termite': return '📦';
+        case 'ServiceType 3': case 'Bees': return '⚡';
+        case 'ServiceType 4': case 'Birds': return '💧';
+        default: return '⚠️';
+      }
+    }
+
+    // Species Representation styles
+    function getPestColor(pestType) {
+      if (configData && configData.categories) {
+        const found = configData.categories.find(c => c.id === pestType || c.name === pestType);
+        if (found && found.color) return found.color;
+      }
+      // Fallback colors in case config is not loaded yet
+      switch (pestType) {
+        case 'ServiceType 1': case 'Mosquito': return { fill: '#ef4444', border: '#b91c1c' }; // Red
+        case 'ServiceType 2': case 'Termite': return { fill: '#64748b', border: '#475569' };  // Slate Gray
+        case 'ServiceType 3': case 'Bees': return { fill: '#f59e0b', border: '#d97706' };     // Gold
+        case 'ServiceType 4': case 'Birds': return { fill: '#3b82f6', border: '#1d4ed8' };    // Blue
+        default: return { fill: '#6366f1', border: '#4f46e5' };
+      }
+    }
+
+    function getSeverityClasses(severity) {
+      switch (severity) {
+        case 1: return "bg-emerald-100 text-emerald-800 border border-emerald-200";
+        case 2: return "bg-yellow-100 text-yellow-800 border border-yellow-200";
+        case 3: return "bg-orange-100 text-orange-800 border border-orange-200";
+        case 4: return "bg-red-100 text-red-800 border border-red-200 animate-pulse";
+        default: return "bg-slate-100 text-slate-800 border border-slate-200";
+      }
+    }
+
+    // Streaming terminal logger
+    function logTerminal(message) {
+      const box = document.getElementById('logs-box');
+      const counter = document.getElementById('log-counter');
+      const eventTime = new Date().toLocaleTimeString();
+
+      const line = document.createElement('div');
+      line.className = "border-b border-slate-800/40 pb-1.5 last:border-0";
+      line.innerHTML = `<span class="text-slate-500 font-mono text-[10px]">[${eventTime}]</span> <span class="text-indigo-300 font-mono text-xs">${escapeHtml(message)}</span>`;
+      
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+
+      // Update log count badge
+      const activeLinesCount = box.children.length;
+      counter.innerText = `${activeLinesCount} event${activeLinesCount !== 1 ? 's' : ''}`;
+    }
+
+    function clearLogs() {
+      const box = document.getElementById('logs-box');
+      box.innerHTML = '<div class="text-slate-500">[System Reset] Clear logs requested by manager. Ready.</div>';
+      document.getElementById('log-counter').innerText = "1 event";
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
