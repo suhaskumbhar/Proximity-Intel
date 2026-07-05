@@ -1,0 +1,115 @@
+<svg width="560" height="280" viewBox="0 0 560 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Definitions for Gradients, Glows, and Filters -->
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="560" y2="280" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#090d16" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#050811" />
+    </linearGradient>
+
+    <!-- Glowing Accent Gradients -->
+    <linearGradient id="cyanGlow" x1="120" y1="60" x2="280" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.1"/>
+    </linearGradient>
+    
+    <linearGradient id="purpleGlow" x1="440" y1="80" x2="360" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d946ef" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="textGrad" x1="40" y1="120" x2="240" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#94a3b8" />
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#334155" stroke-width="0.5" stroke-opacity="0.25" />
+    </pattern>
+
+    <!-- Drop Glow Filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect width="560" height="280" fill="url(#bgGrad)" />
+  
+  <!-- Coordinate Mapping Grid Grid -->
+  <rect width="560" height="280" fill="url(#grid)" />
+
+  <!-- Ambient Light Backdrops (Glows) -->
+  <circle cx="430" cy="110" r="90" fill="url(#purpleGlow)" filter="url(#softGlow)" />
+  <circle cx="280" cy="200" r="110" fill="url(#cyanGlow)" filter="url(#softGlow)" />
+
+  <!-- Abstract Geofence Rings -->
+  <!-- Primary Ring Outer -->
+  <circle cx="390" cy="140" r="100" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="4 8" stroke-opacity="0.4" />
+  <!-- Primary Ring Mid -->
+  <circle cx="390" cy="140" r="75" stroke="#3b82f6" stroke-width="1" stroke-opacity="0.3" />
+  <!-- Primary Ring Inner (Active Radar) -->
+  <circle cx="390" cy="140" r="45" stroke="#6366f1" stroke-width="1.5" stroke-opacity="0.6" filter="url(#glow)" />
+  <circle cx="390" cy="140" r="20" stroke="#a855f7" stroke-width="1" stroke-dasharray="2 4" stroke-opacity="0.5" />
+
+  <!-- Haversine Connection Arcs & Vectors -->
+  <path d="M 240 180 C 310 160, 340 150, 390 140" stroke="#06b6d4" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="3 3" />
+  <path d="M 390 140 C 420 180, 460 190, 480 210" stroke="#6366f1" stroke-width="1.5" stroke-opacity="0.5" />
+  <path d="M 390 140 C 410 80, 440 60, 460 50" stroke="#d946ef" stroke-width="1.2" stroke-opacity="0.4" stroke-dasharray="6 3" />
+
+  <!-- Spatial Nodes & Alerts (Coordinate Pins) -->
+  <!-- Anchor node (Main User Location) -->
+  <g transform="translate(390, 140)">
+    <circle cx="0" cy="0" r="14" fill="#06b6d4" fill-opacity="0.15" filter="url(#glow)" />
+    <circle cx="0" cy="0" r="7" fill="#22d3ee" filter="url(#glow)" />
+    <circle cx="0" cy="0" r="3" fill="#ffffff" />
+  </g>
+
+  <!-- Surrounding Service Alert Node 1 (Active Pest Alert/Customer) -->
+  <g transform="translate(480, 210)">
+    <circle cx="0" cy="0" r="10" fill="#6366f1" fill-opacity="0.2" />
+    <circle cx="0" cy="0" r="5" fill="#818cf8" />
+  </g>
+
+  <!-- Surrounding Service Alert Node 2 (Municipal/Discount Target) -->
+  <g transform="translate(460, 50)">
+    <circle cx="0" cy="0" r="8" fill="#d946ef" fill-opacity="0.2" />
+    <circle cx="0" cy="0" r="4" fill="#f472b6" />
+  </g>
+
+  <!-- Surrounding Service Alert Node 3 (Geofenced Node Edge) -->
+  <g transform="translate(240, 180)">
+    <circle cx="0" cy="0" r="9" fill="#0ea5e9" fill-opacity="0.15" />
+    <circle cx="0" cy="0" r="4" fill="#38bdf8" />
+  </g>
+
+  <!-- Left Sidebar Brand Representation -->
+  <!-- Glowing Vertical Tech Divider -->
+  <line x1="40" y1="50" x2="40" y2="230" stroke="#1e293b" stroke-width="2" />
+  <line x1="40" y1="100" x2="40" y2="180" stroke="#06b6d4" stroke-width="2.5" filter="url(#glow)" />
+
+  <!-- Brand Title Typography -->
+  <text x="56" y="112" font-family="'Inter', system-ui, sans-serif" font-weight="800" font-size="28" letter-spacing="1" fill="url(#textGrad)">PROXIMITY</text>
+  <text x="56" y="142" font-family="'Inter', system-ui, sans-serif" font-weight="900" font-size="28" letter-spacing="1" fill="#06b6d4" filter="url(#glow)">INTEL</text>
+
+  <!-- Technical Specs / Metadata labels on left -->
+  <text x="56" y="174" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="9" font-weight="600" fill="#475569" letter-spacing="1.5">FIELD OP INTELLIGENCE</text>
+  <text x="56" y="188" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="9" font-weight="600" fill="#0891b2" letter-spacing="1.5">SENSE METERS. SAVE MINUTES.</text>
+
+  <!-- Small Corner Accent Overlays (Tech aesthetics) -->
+  <!-- Top Left Tech Accents -->
+  <path d="M 16 24 L 32 24 M 16 24 L 16 40" stroke="#334155" stroke-width="1.5" />
+  <!-- Bottom Right Tech Accents -->
+  <path d="M 544 256 L 528 256 M 544 256 L 544 240" stroke="#334155" stroke-width="1.5" />
+  
+  <!-- Interactive Target Overlay -->
+  <rect x="16" y="16" width="528" height="248" rx="4" stroke="#475569" stroke-width="1" stroke-opacity="0.2" fill="none" />
+</svg>
