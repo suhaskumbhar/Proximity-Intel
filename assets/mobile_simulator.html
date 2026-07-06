@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proximity Intel - Field Operative Mobile Simulator</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Simple custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    /* Pulse Animation for Operative Coordinate */
+    .pulse-marker {
+      background: rgba(14, 116, 144, 0.3);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(14, 116, 144, 0.7);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(14, 116, 144, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(14, 116, 144, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(14, 116, 144, 0);
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col items-center justify-start p-4 md:p-8">
+
+  <!-- Header Banner -->
+  <div class="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mb-8 border-b border-slate-200 pb-6">
+    <div class="flex items-center gap-4 mb-4 md:mb-0">
+      <div class="w-12 h-12 rounded-xl bg-cyan-100 flex items-center justify-center border border-cyan-200">
+        <span class="text-2xl">📍</span>
+      </div>
+      <div>
+        <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+          PROXIMITY <span class="text-cyan-600 font-black">INTEL</span>
+        </h1>
+        <p class="text-xs text-slate-500 uppercase tracking-widest font-mono font-medium">Field Operative Mobile Client Simulator</p>
+      </div>
+    </div>
+    
+    <!-- API URL Configuration Box -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shadow-sm">
+      <div>
+        <label class="block text-[10px] uppercase font-mono tracking-wider text-slate-500 mb-1 font-bold">Active Backend API Host</label>
+        <input id="apiHostInput" type="text" class="bg-slate-50 border border-slate-200 rounded px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-cyan-500 font-mono w-full sm:w-64" placeholder="Detecting automatically...">
+      </div>
+      <button onclick="saveApiHost()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition-all shadow-md shadow-cyan-500/10 flex items-center justify-center gap-1.5 self-end">
+        <span>🔄</span> Set Target
+      </button>
+    </div>
+  </div>
+
+  <div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT SIDE: Technical Specifications & Simulation Control Desk (Lg: 7 cols) -->
+    <div class="lg:col-span-7 space-y-6">
+      
+      <!-- Scenario Selection Panel -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h2 class="text-md font-bold text-slate-900 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+          <span>🧠</span> 1. Select Metro Hub / Sector
+        </h2>
+        <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+          The server-side database initializes 100 high-accuracy service alerts across three main regions. Click a region to dispatch your simulated field operative there:
+        </p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <button onclick="warpTo(35.1350, -90.0050, 'Downtown Memphis')" class="group text-left bg-slate-50 border border-slate-200 hover:border-cyan-500 p-3 rounded-xl transition-all hover:bg-cyan-50/20">
+            <div class="text-xs font-bold text-slate-800 group-hover:text-cyan-600 transition-colors">🌆 Memphis Core</div>
+            <div class="text-[10px] text-slate-500 font-mono mt-1">35.1350, -90.0050</div>
+            <span class="inline-block mt-2 text-[10px] bg-slate-200/60 text-slate-600 px-1.5 py-0.5 rounded font-mono font-medium">Central Hub</span>
+          </button>
+          
+          <button onclick="warpTo(35.1700, -89.7800, 'Cordova Hub')" class="group text-left bg-slate-50 border border-slate-200 hover:border-cyan-500 p-3 rounded-xl transition-all hover:bg-cyan-50/20">
+            <div class="text-xs font-bold text-slate-800 group-hover:text-cyan-600 transition-colors">🌳 Cordova Sector</div>
+            <div class="text-[10px] text-slate-500 font-mono mt-1">35.1700, -89.7800</div>
+            <span class="inline-block mt-2 text-[10px] bg-slate-200/60 text-slate-600 px-1.5 py-0.5 rounded font-mono font-medium">Shelby Farms Area</span>
+          </button>
+          
+          <button onclick="warpTo(35.0850, -89.7900, 'Germantown Site')" class="group text-left bg-slate-50 border border-slate-200 hover:border-cyan-500 p-3 rounded-xl transition-all hover:bg-cyan-50/20">
+            <div class="text-xs font-bold text-slate-800 group-hover:text-cyan-600 transition-colors">🏡 Germantown</div>
+            <div class="text-[10px] text-slate-500 font-mono mt-1">35.0850, -89.7900</div>
+            <span class="inline-block mt-2 text-[10px] bg-slate-200/60 text-slate-600 px-1.5 py-0.5 rounded font-mono font-medium">Farmington Depot</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Simulation Joystick (Move-on-Move) -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h2 class="text-md font-bold text-slate-900 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+          <span>🎮</span> 2. Simulate Movement & Offline State
+        </h2>
+        <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+          Move your operative using the directional controls. Movement registers immediately on-device. If you move <strong class="text-cyan-600">&gt; 500 meters</strong>, a real-time HTTP Pull will automatically trigger!
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Joystick Grid -->
+          <div class="flex flex-col items-center bg-slate-50 border border-slate-200 p-4 rounded-xl">
+            <span class="text-[10px] uppercase font-mono tracking-wider text-slate-500 mb-3 font-bold">Simulate GPS Movement</span>
+            <div class="grid grid-cols-3 gap-2 w-36">
+              <div></div>
+              <button onclick="simulateMove(0.005, 0, 'North')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 active:bg-cyan-600 active:text-white p-2.5 rounded-lg font-bold text-center transition-colors">▲</button>
+              <div></div>
+              
+              <button onclick="simulateMove(0, -0.005, 'West')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 active:bg-cyan-600 active:text-white p-2.5 rounded-lg font-bold text-center transition-colors">◀</button>
+              <div class="flex items-center justify-center text-xs text-slate-500 font-mono font-bold">500m</div>
+              <button onclick="simulateMove(0, 0.005, 'East')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 active:bg-cyan-600 active:text-white p-2.5 rounded-lg font-bold text-center transition-colors">▶</button>
+              
+              <div></div>
+              <button onclick="simulateMove(-0.005, 0, 'South')" class="bg-slate-200 hover:bg-slate-300 text-slate-800 active:bg-cyan-600 active:text-white p-2.5 rounded-lg font-bold text-center transition-colors">▼</button>
+              <div></div>
+            </div>
+            <div class="text-[10px] text-slate-500 font-mono mt-3 text-center">Clicking the map also re-positions your GPS marker instantly.</div>
+          </div>
+
+          <!-- Offline Sandbox Toggle -->
+          <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col justify-between">
+            <div>
+              <span class="text-[10px] uppercase font-mono tracking-wider text-slate-500 block mb-1 font-bold">Offline Dead-Zone Resilience</span>
+              <p class="text-[11px] text-slate-600 leading-relaxed mb-3">
+                Toggle offline mode to simulate entering a basement or dead zone. Requests will be stored in an internal client-side offline queue and automatically retried upon reconnection!
+              </p>
+            </div>
+            
+            <div class="flex items-center justify-between border-t border-slate-200 pt-3">
+              <span class="text-xs font-bold text-slate-600">Simulate Offline Mode</span>
+              <button id="offlineBtn" onclick="toggleOffline()" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2 shadow-sm">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-ping"></span> Live Connection
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+          <h2 class="text-md font-bold text-slate-900 flex items-center gap-2">
+            <span>📺</span> 3. Real-time Telemetry logs & API pay-load
+          </h2>
+          <button onclick="clearLogs()" class="text-[10px] uppercase font-mono text-slate-400 hover:text-cyan-600 transition-colors font-bold">Clear Console</button>
+        </div>
+        
+        <div id="logConsole" class="bg-slate-900 text-slate-200 font-mono text-xs p-4 rounded-xl border border-slate-800 h-64 overflow-y-auto space-y-2.5 leading-relaxed shadow-inner">
+          <div class="text-slate-500">// Proximity Intel client telemetry console ready...</div>
+          <div class="text-slate-500">// Set backend host and interact to stream live Haversine payload logs.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDE: Beautiful Resizable Mobile Mockup Panel (Lg: 5 cols) -->
+    <div class="lg:col-span-5 flex flex-col items-center">
+      
+     
+
+      <!-- Smartphone Frame Mockup -->
+      <div class="relative w-[340px] h-[680px] rounded-[50px] border-[12px] border-slate-800 bg-[#0c101d] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
+        
+        <!-- Camera Notch -->
+        <div class="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-800 rounded-full z-50 flex items-center justify-between px-4">
+          <div class="w-2.5 h-2.5 rounded-full bg-slate-950"></div>
+          <div class="w-6 h-1 bg-slate-950 rounded-full"></div>
+        </div>
+
+        <!-- Phone Status Bar -->
+        <div class="h-10 bg-slate-100 flex items-center justify-between px-6 pt-2 z-40 text-[10px] font-mono text-slate-600 select-none border-b border-slate-200/60">
+          <div id="statusBarTime" class="font-bold text-slate-700">12:00</div>
+          <div class="flex items-center gap-1.5">
+            <span id="statusBarNetwork" class="font-semibold">LTE</span>
+            <span>📶</span>
+            <span>🔋 98%</span>
+          </div>
+        </div>
+
+        <!-- Phone Content Area (Scrollable Screen) -->
+        <div class="flex-1 flex flex-col min-h-0 relative bg-slate-50">
+          
+          <!-- Leaflet Map Container inside Mobile screen -->
+          <div id="mobileMap" class="w-full h-1/2 bg-slate-100 border-b border-slate-200 relative z-10"></div>
+          
+          <!-- Active Task/Alert Header -->
+          <div class="bg-white p-3.5 flex justify-between items-center z-20 border-b border-slate-200 shadow-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>
+              <span class="text-xs font-bold text-slate-800 tracking-wide">SURROUNDING ALERTS</span>
+            </div>
+            <span id="alertCountBadge" class="text-[9px] font-mono bg-cyan-50 text-cyan-700 border border-cyan-200/80 px-2 py-0.5 rounded-full font-bold">0 MATCHES</span>
+          </div>
+
+          <!-- Alert Cards Mobile List Feed -->
+          <div id="alertMobileFeed" class="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-50 z-20">
+            <div class="text-center py-8">
+              <span class="text-2xl opacity-60 block mb-2">📡</span>
+              <div class="text-xs font-bold text-slate-500">Searching coordinates...</div>
+              <div class="text-[10px] text-slate-400 mt-1">Move simulated user to query server.</div>
+            </div>
+          </div>
+
+          <!-- Quick Actions Tool tray inside the screen -->
+          <div class="p-3 bg-white border-t border-slate-200 flex justify-between items-center gap-2 z-20 shadow-lg">
+            <div class="text-[10px] text-slate-600">
+              <div class="font-bold text-slate-800">OP-GPS Coords:</div>
+              <div id="coordsIndicator" class="font-mono text-cyan-600 font-semibold">35.1350, -90.0050</div>
+            </div>
+            
+            <button onclick="triggerPull()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition-all shadow-md shadow-cyan-500/10">
+              <span>⚡</span> Pull Alerts
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Phone Home Indicator Bar at the bottom -->
+        <div class="h-6 bg-slate-900 flex justify-center items-end pb-1.5 z-40 select-none">
+          <div class="w-24 h-1 bg-slate-600 rounded-full"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Footnote -->
+  <div class="w-full max-w-6xl text-center text-[11px] text-slate-400 mt-12 border-t border-slate-200 pt-6">
+    Proximity Intel Location Engine &copy; 2026. Built with dual-tier Redis & Memory routing logic for elite real-time telemetry processing.
+  </div>
+
+  <!-- Simulator Scripts -->
+  <script>
+    // Configuration states
+    let BASE_API_URL = window.location.origin;
+    if (BASE_API_URL.startsWith('file:///')) {
+      BASE_API_URL = "http://localhost:3000";
+    }
+    
+    document.getElementById('apiHostInput').value = BASE_API_URL;
+
+    // Simulation Coordinates
+    let currentLat = 35.1350;
+    let currentLon = -90.0050;
+    let lastFetchedLat = 35.1350;
+    let lastFetchedLon = -90.0050;
+
+    // System States
+    let isOffline = false;
+    let offlineQueue = [];
+    let map = null;
+    let userMarker = null;
+    let alertMarkersGroup = null;
+    let appConfig = null;
+
+    // Live clock in smartphone status bar
+    function updatePhoneClock() {
+      const date = new Date();
+      let hours = date.getHours();
+      let minutes = date.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // the hour '0' should be '12'
+      minutes = minutes < 10 ? '0'+minutes : minutes;
+      document.getElementById('statusBarTime').innerText = `${hours}:${minutes} ${ampm}`;
+    }
+    setInterval(updatePhoneClock, 1000);
+    updatePhoneClock();
+
+    // Logger Utility
+    function logMessage(tag, message, type = 'info') {
+      const consoleEl = document.getElementById('logConsole');
+      const timeStr = new Date().toLocaleTimeString();
+      let colorClass = 'text-cyan-400';
+      if (type === 'error') colorClass = 'text-rose-400 font-bold';
+      if (type === 'success') colorClass = 'text-emerald-400';
+      if (type === 'warning') colorClass = 'text-amber-400';
+      if (type === 'system') colorClass = 'text-purple-400';
+
+      const logRow = document.createElement('div');
+      logRow.className = "border-b border-slate-800/40 pb-1.5 last:border-0";
+      logRow.innerHTML = `
+        <span class="text-slate-500 text-[10px]">[${timeStr}]</span>
+        <span class="font-bold text-[10px] tracking-wide bg-slate-950 px-1 py-0.5 rounded text-slate-400 mr-1">${tag}</span>
+        <span class="${colorClass}">${message}</span>
+      `;
+      
+      consoleEl.appendChild(logRow);
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    // Save customized API URL
+    function saveApiHost() {
+      const inputVal = document.getElementById('apiHostInput').value.trim();
+      if (inputVal) {
+        BASE_API_URL = inputVal;
+        logMessage('CONFIG', `Backend target API host successfully locked to: <span class="underline">${BASE_API_URL}</span>`, 'system');
+        fetchIndustryConfig();
+        triggerPull();
+      }
+    }
+
+    // Leaflet Haversine distance formula calculation
+    function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    // Initialize Map View inside mobile mockup
+    function initMap() {
+      if (map) return;
+      
+      // Load Leaflet map
+      map = L.map('mobileMap', {
+        zoomControl: false,
+        attributionControl: false
+      }).setView([currentLat, currentLon], 13);
+
+      // Add high-contrast light tile theme layer (looks incredibly clean, normal and beautiful)
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+      }).addTo(map);
+
+      // Custom pulsing icon for Simulated Field Operative
+      const pulseHtml = `<div class="pulse-marker w-5 h-5 border-2 border-white flex items-center justify-center shadow-md"><div class="w-2 h-2 bg-cyan-600 rounded-full"></div></div>`;
+      const customPulseIcon = L.divIcon({
+        html: pulseHtml,
+        className: '',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+
+      // Place simulated Operative Marker
+      userMarker = L.marker([currentLat, currentLon], { icon: customPulseIcon }).addTo(map);
+
+      // Group layer to contain nearby active alerts
+      alertMarkersGroup = L.layerGroup().addTo(map);
+
+      // Map click handler - allows repositioning coordinates dynamically
+      map.on('click', (e) => {
+        warpTo(e.latlng.lat, e.latlng.lng, "Interactive Map Click");
+      });
+    }
+
+    // Load dynamic app configuration
+    async function fetchIndustryConfig() {
+      try {
+        logMessage('CONFIG', `Fetching dynamic branding parameters from server...`, 'info');
+        const res = await fetch(`${BASE_API_URL}/v1/config`);
+        if (!res.ok) throw new Error(`HTTP status: ${res.status}`);
+        const data = await res.json();
+        appConfig = data;
+        logMessage('CONFIG', `Branded to ${data.appName} [Industry: ${data.industry}]`, 'success');
+      } catch (err) {
+        logMessage('CONFIG', `Using standard fallback config: ${err.message}`, 'warning');
+        // fallback matching config.json
+        appConfig = {
+          industry: "Multi-Industry Spatial Intelligence",
+          appName: "Proximity Intel",
+          alertNameSingular: "Service Alert",
+          allowedCategories: ["ServiceType 1", "ServiceType 2", "ServiceType 3", "ServiceType 4"]
+        };
+      }
+    }
+
+    // Offline mode toggling
+    function toggleOffline() {
+      isOffline = !isOffline;
+      const btn = document.getElementById('offlineBtn');
+      const barNetwork = document.getElementById('statusBarNetwork');
+      
+      if (isOffline) {
+        btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Simulation Offline`;
+        btn.className = "bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2 shadow-sm";
+        barNetwork.innerText = "OFFLINE";
+        barNetwork.className = "font-bold text-rose-600 animate-pulse";
+        logMessage('SANDBOX', `⚡ Mobile client cellular link disconnected! Queries will cache.`, 'warning');
+      } else {
+        btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-ping"></span> Live Connection`;
+        btn.className = "bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-xs px-4 py-2 rounded-lg transition-all flex items-center gap-2 shadow-sm";
+        barNetwork.innerText = "LTE";
+        barNetwork.className = "font-semibold";
+        logMessage('SANDBOX', `✅ Cellular link restored. Flushing client queue: ${offlineQueue.length} pending...`, 'success');
+        
+        // flush offline queries
+        if (offlineQueue.length > 0) {
+          offlineQueue = [];
+          triggerPull();
+        }
+      }
+    }
+
+    // Main Spatial Pull request
+    async function triggerPull() {
+      // Update UI coordinates
+      document.getElementById('coordsIndicator').innerText = `${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`;
+      userMarker.setLatLng([currentLat, currentLon]);
+      
+      // Log current state
+      logMessage('GPS-TRACK', `Mobile radio dispatched coordinates: lat=${currentLat.toFixed(4)}, lon=${currentLon.toFixed(4)}`, 'info');
+
+      if (isOffline) {
+        logMessage('QUEUE', `Stored current coordinate packet [lat=${currentLat.toFixed(4)}] in on-device queue.`, 'warning');
+        offlineQueue.push({ lat: currentLat, lon: currentLon });
+        
+        // Display offline feed mockup
+        const feedEl = document.getElementById('alertMobileFeed');
+        feedEl.innerHTML = `
+          <div class="border border-amber-200 bg-amber-50/50 rounded-xl p-4 text-center">
+            <span class="text-xl block mb-1">📴</span>
+            <div class="text-xs font-bold text-amber-700">Radio Offline</div>
+            <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">
+              Your cellular link is offline. Your location has been queued. Showing last known state.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const bodyPayload = {
+        appointments: [
+          { id: "operative-mobile-node", lat: currentLat, lon: currentLon }
+        ],
+        maxDistanceKm: 2.0 // retrieve any alerts within 2.0 kilometers
+      };
+
+      try {
+        logMessage('REST-POST', `POST /v1/alerts/batch-check Payload: ${JSON.stringify(bodyPayload)}`, 'info');
+        
+        const response = await fetch(`${BASE_API_URL}/v1/alerts/batch-check`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyPayload)
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+
+        // Process matching results
+        const resultItem = data.appointments[0];
+        const alertsMatched = resultItem.alerts || [];
+
+        logMessage('SERVER-RES', `HTTP ${response.status} OK. Spatial Engine: [${data.engine}]. Matches returned: ${alertsMatched.length}`, 'success');
+
+        // Update markers & map
+        alertMarkersGroup.clearLayers();
+        
+        const feedEl = document.getElementById('alertMobileFeed');
+        document.getElementById('alertCountBadge').innerText = `${alertsMatched.length} MATCHES`;
+
+        if (alertsMatched.length === 0) {
+          feedEl.innerHTML = `
+            <div class="text-center py-12">
+              <span class="text-xl block mb-1">🟢</span>
+              <div class="text-xs font-bold text-slate-500">Zero Surrounding Warnings</div>
+              <div class="text-[10px] text-slate-400 mt-1">This sector is clean. No warnings within 2.0km limit.</div>
+            </div>
+          `;
+        } else {
+          let listHtml = '';
+          alertsMatched.forEach((alert) => {
+            const distanceText = alert.distanceM ? `${alert.distanceM}m` : `${(alert.distanceKm * 1000).toFixed(0)}m`;
+            
+            // Build visual pins on Leaflet
+            // Map severities to colors
+            let severityColor = "#06b6d4"; // cyan
+            if (alert.severity === 4) severityColor = "#ef4444"; // red
+            if (alert.severity === 3) severityColor = "#f59e0b"; // yellow
+            
+            const markerOptions = {
+              radius: 8,
+              fillColor: severityColor,
+              color: "#ffffff",
+              weight: 1.5,
+              opacity: 1,
+              fillOpacity: 0.8
+            };
+            
+            // Draw geofence circle on map for demonstration
+            L.circle([alert.lat, alert.lon], {
+              radius: 150, // 150m visual geofence
+              color: severityColor,
+              fillColor: severityColor,
+              fillOpacity: 0.08,
+              weight: 1.2,
+              dashArray: "3 3"
+            }).addTo(alertMarkersGroup);
+
+            L.circleMarker([alert.lat, alert.lon], markerOptions)
+              .bindPopup(`<strong class="text-xs text-slate-800">${alert.pestType}</strong><br><span class="text-[10px] text-slate-500">${alert.source} (${distanceText})</span>`)
+              .addTo(alertMarkersGroup);
+
+            // Add alert to Mobile Card Feed
+            listHtml += `
+              <div class="bg-white border border-slate-200/80 hover:border-cyan-500/50 p-3 rounded-xl shadow-xs transition-all flex items-start gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-md font-bold" style="background-color: ${severityColor}15; border: 1px solid ${severityColor}30">
+                  ⚡
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between items-center mb-0.5">
+                    <span class="text-[11px] font-extrabold text-slate-900 uppercase tracking-wide truncate">${alert.pestType}</span>
+                    <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded" style="background-color: ${severityColor}15; color: ${severityColor}">${distanceText} away</span>
+                  </div>
+                  <div class="text-[10px] text-slate-600 font-medium leading-normal">${alert.source}</div>
+                  <div class="text-[9px] text-slate-400 font-mono mt-1.5 flex items-center gap-1.5">
+                    <span class="text-slate-500 font-semibold">🔥 Priority: LVL ${alert.severity}</span>
+                    <span>•</span>
+                    <span>ID: ${alert.id}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          feedEl.innerHTML = listHtml;
+        }
+
+        // Cache last coordinates
+        lastFetchedLat = currentLat;
+        lastFetchedLon = currentLon;
+
+      } catch (err) {
+        logMessage('SERVER-ERR', `API Pull failed: ${err.message}`, 'error');
+      }
+    }
+
+    // Warp Simulated User Location
+    function warpTo(lat, lon, label) {
+      currentLat = lat;
+      currentLon = lon;
+      logMessage('GPS-TRACK', `Warped simulated operative position to: ${label}`, 'system');
+      map.setView([currentLat, currentLon], 13);
+      triggerPull();
+    }
+
+    // Simulate move-based coordinate changes
+    function simulateMove(latOffset, lonOffset, direction) {
+      currentLat += latOffset;
+      currentLon += lonOffset;
+      
+      const distanceMovedM = calculateHaversineDistance(lastFetchedLat, lastFetchedLon, currentLat, currentLon) * 1000;
+      logMessage('GPS-TRACK', `Simulated field movement: ${direction} (+${distanceMovedM.toFixed(0)} meters total delta)`, 'system');
+
+      // Center map slightly to track agent
+      map.panTo([currentLat, currentLon]);
+
+      // Trigger Pull on Move if threshold (> 500 meters) met
+      if (distanceMovedM >= 500) {
+        logMessage('GPS-TRACK', `🔔 Threshold Alert! Operative moved &gt; 500m. Triggering automated pull...`, 'warning');
+        triggerPull();
+      } else {
+        // Just update coordinate indicators on map without full API fetch to preserve battery
+        userMarker.setLatLng([currentLat, currentLon]);
+        document.getElementById('coordsIndicator').innerText = `${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`;
+      }
+    }
+
+    // Clears telemetry dashboard console logs
+    function clearLogs() {
+      const consoleEl = document.getElementById('logConsole');
+      consoleEl.innerHTML = '<div class="text-slate-500">// Console buffer cleared. Telemetry monitoring operational.</div>';
+    }
+
+    // Auto Pull interval simulation (e.g. 5 minutes or fast demo 30s)
+    let autoInterval = setInterval(triggerPull, 300000); // 5 minutes standard pull
+
+    // Booting logic
+    window.addEventListener('DOMContentLoaded', async () => {
+      initMap();
+      await fetchIndustryConfig();
+      triggerPull();
+    });
+  </script>
+</body>
+</html>

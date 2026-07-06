@@ -143,26 +143,54 @@ Consuming mobile clients upload coordinate batches to retrieve a prioritized arr
 ```json
 {
   "success": true,
-  "results": [
+  "queryTimestamp": "2026-07-05T19:17:17.000Z",
+  "globalMaxDistanceKm": 1.5,
+  "engine": "RedisLive",
+  "appointments": [
     {
       "id": "tech-current-pos",
       "lat": 35.1492,
       "lon": -89.9721,
-      "matches": [
+      "gridKey": "35.15_-89.97",
+      "cluster": ["35.15_-89.97", "35.15_-89.98", "35.15_-89.96", "35.16_-89.97", "35.14_-89.97", "35.16_-89.98", "35.16_-89.96", "35.14_-89.98", "35.14_-89.96"],
+      "maxDistanceKm": 1.5,
+      "alerts": [
         {
           "id": "alert-8b29f9",
           "lat": 35.1481,
           "lon": -89.9743,
-          "distanceKm": 0.23,
           "pestType": "City Maintenance",
           "severity": 3,
-          "source": "Downtown Sewer Main Report"
+          "source": "Downtown Sewer Main Report",
+          "distanceKm": 0.23,
+          "distanceM": 230
         }
       ]
     }
   ]
 }
 ```
+
+---
+
+## 📱 Interactive Mobile Operative Simulator 
+
+To verify the **Pull-on-Move & Offline Queuing** architecture ,included a completely self-contained **Mobile Client Simulator** at `/assets/mobile_simulator.html`.
+
+This simulation sandbox operates independently of the core server code but communicates directly with the active backend REST API endpoints.
+
+### How to use it for your Screen Recording:
+1. **Open the Simulator:** Open `/assets/mobile_simulator.html` in any web browser.
+2. **Configure Host:** The client automatically detects the current server host. If running locally or on a custom domain, simply paste your server address (e.g., `http://localhost:3000` or your Cloud Run URL) into the target bar and click **Set Target**.
+3. **Simulate Metro Hubs:** Click **Memphis Core**, **Cordova Sector**, or **Germantown** to instant-warp the simulated agent to pre-seeded hotzones.
+4. **Demonstrate Pull-on-Move:** 
+   * Click on the Leaflet map or use the **GPS directional joystick (▲ ▼ ◀ ▶)** to move the technician.
+   * Moving **over 500 meters** will trigger an automatic, server-side Haversine search, highlighting dynamic polling.
+5. **Demonstrate Dead-Zone Resilience:**
+   * Toggle **Live Connection** to **Simulation Offline**.
+   * Move the agent. The logs will show coordinates caching locally.
+   * Toggle back to **Live Connection**. The queue immediately flushes, pulling newly matched alerts from the server!
+6. **Evaluate Payload:** Inspect the **Real-time Telemetry console** to see the exact JSON payload sent to `/v1/alerts/batch-check` and parsed JSON response streams.
 
 ---
 

@@ -353,6 +353,36 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ROUTE: GET /assets/mobile_simulator.html (Serve mobile client simulator for testing & demos)
+  if (req.method === "GET" && pathname === "/assets/mobile_simulator.html") {
+    try {
+      const pagePath = path.join(process.cwd(), "assets", "mobile_simulator.html");
+      const html = await fs.readFile(pagePath);
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      res.end(html);
+    } catch (err) {
+      console.error("Failed to serve mobile simulator:", err);
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("404 Not Found: Mobile simulator file is missing.");
+    }
+    return;
+  }
+
+  // ROUTE: GET /proximity-intel-banner.svg or /assets/proximity-intel-banner.svg
+  if (req.method === "GET" && (pathname === "/proximity-intel-banner.svg" || pathname === "/assets/proximity-intel-banner.svg")) {
+    try {
+      const pagePath = path.join(process.cwd(), pathname.startsWith("/assets/") ? "assets" : "", "proximity-intel-banner.svg");
+      const svg = await fs.readFile(pagePath);
+      res.writeHead(200, { "Content-Type": "image/svg+xml" });
+      res.end(svg);
+    } catch (err) {
+      console.error("Failed to serve banner SVG:", err);
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("404 Not Found: Banner SVG file is missing.");
+    }
+    return;
+  }
+
   // ROUTE: GET /v1/config (Get active industry configurations)
   if (req.method === "GET" && pathname === "/v1/config") {
     res.writeHead(200, { "Content-Type": "application/json" });
